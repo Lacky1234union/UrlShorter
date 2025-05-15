@@ -8,7 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Lacky1234union/UrlShorter/internal/http-server/handlers/url/save"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/api/response"
+	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/handlers/slogdiscard"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -48,7 +50,7 @@ func TestSaveHandler(t *testing.T) {
 			}
 
 			// Создаем наш хэндлер
-			handler := save.New(sl.NewDiscardLogger(), urlSaverMock)
+			handler := save.New(slogdiscard.NewDiscardLogger(), urlSaverMock)
 
 			// Формируем тело запроса
 			input := fmt.Sprintf(`{"url": "%s", "alias": "%s"}`, tc.url, tc.alias)
