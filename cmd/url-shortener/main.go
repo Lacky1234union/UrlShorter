@@ -10,6 +10,7 @@ import (
 	"github.com/Lacky1234union/UrlShorter/internal/lib/api/response"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/errs"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
+
 	"github.com/Lacky1234union/UrlShorter/internal/storage/sqlite"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -34,6 +35,7 @@ func main() {
 	if err != nil {
 		log.Error("failed to initialize storage", sl.Err(err))
 	}
+
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestID) // Добавляет request_id в каждый запрос, для трейсинга
