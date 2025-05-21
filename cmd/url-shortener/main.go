@@ -7,10 +7,12 @@ import (
 	"os"
 
 	"github.com/Lacky1234union/UrlShorter/internal/config"
+	"github.com/Lacky1234union/UrlShorter/internal/http-server/handlers/url/redirect"
+	"github.com/Lacky1234union/UrlShorter/internal/http-server/handlers/url/save"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/api/response"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/errs"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
-
+	"github.com/Lacky1234union/UrlShorter/internal/service"
 	"github.com/Lacky1234union/UrlShorter/internal/storage/sqlite"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -27,21 +29,40 @@ func main() {
 	cfg := config.MustLoad()
 
 	log := setupLogger(cfg.Env)
-	log = log.With(slog.String("env", cfg.Env)) // к каждому сообщению будет добавляться поле с информацией о текущем окружении
+	log = log.With(slog.String("env", cfg.Env))
 
-	log.Info("initializing server", slog.String("address", cfg.Address)) // Помимо сообщения выведем параметр с адресом
+	log.Info("initializing server", slog.String("address", cfg.Address))
 	log.Debug("logger debug mode enabled")
+
+	// Initialize storage
 	storage, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
 		log.Error("failed to initialize storage", sl.Err(err))
+		os.Exit(1)
 	}
 
+	// Initialize service
+	urlService := service.NewURLService(storage)
+
+	// Initialize router
 	router := chi.NewRouter()
 
-	router.Use(middleware.RequestID) // Добавляет request_id в каждый запрос, для трейсинга
-	router.Use(middleware.Logger)    // Логирование всех запросов
-	router.Use(middleware.Recoverer) // Если где-то внутри сервера (обработчика запроса) произойдет паника, приложение не должно упасть
-	router.Use(middleware.URLFormat) // Парсер URLов поступающих запросов
+	// Middleware
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+
+	// Routes
+	router.Post("/url", save.New(log, urlService))
+	router.Get("/{alias}", redirect.New(log, urlService))
+
+	// Start server
+	log.Info("starting server", slog.String("address", cfg.Address))
+	if err := http.ListenAndServe(cfg.Address, router); err != nil {
+		log.Error("failed to start server", sl.Err(err))
+		os.Exit(1)
+	}
 }
 
 func setupLogger(env string) *slog.Logger {
