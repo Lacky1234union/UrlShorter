@@ -1,7 +1,15 @@
 package main
 
+import (
+	"fmt"
+
+	"github.com/Lacky1234union/UrlShorter/internal/config"
+)
+
 func main() {
-	//TODO: init config: cleanenv
+	cfg := config.MustLoad() // TODO: init config: cleanenv
+
+	fmt.Println(cfg)
 	//
 	//TODO: init logger: slog (logger)
 	//
