@@ -32,6 +32,7 @@ func main() {
 		log.Error("failed init storage", sl.Err(err))
 		os.Exit(1)
 	}
+	_ = storage
 	//TODO: init roouter: chi, "chi render"
 	//
 	//TODO: run server
