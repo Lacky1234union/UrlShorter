@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Lacky1234union/UrlShorter/internal/config"
+	"github.com/Lacky1234union/UrlShorter/internal/storage/sqlite"
 )
 
 const (
@@ -23,7 +24,13 @@ func main() {
 	log.Info("Server Start", slog.String("env", cfg.Env))
 	//
 	//TODO: init logger: slog (logger)
-	//
+
+	// TODO: init storage
+	storage, err := sqlite.New(cfg.StoragePath)
+	if err != nil {
+		log.Error("failed init storage")
+		os.Exit(1)
+	}
 	//TODO: init roouter: chi, "chi render"
 	//
 	//TODO: run server
