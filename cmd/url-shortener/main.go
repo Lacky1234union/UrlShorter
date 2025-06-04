@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Lacky1234union/UrlShorter/internal/config"
+	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
 	"github.com/Lacky1234union/UrlShorter/internal/storage/sqlite"
 )
 
@@ -28,7 +29,7 @@ func main() {
 	// TODO: init storage
 	storage, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
-		log.Error("failed init storage")
+		log.Error("failed init storage", sl.Err(err))
 		os.Exit(1)
 	}
 	//TODO: init roouter: chi, "chi render"
