@@ -8,6 +8,8 @@ import (
 	"github.com/Lacky1234union/UrlShorter/internal/config"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
 	"github.com/Lacky1234union/UrlShorter/internal/storage/sqlite"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const (
@@ -33,28 +35,13 @@ func main() {
 		os.Exit(1)
 	}
 	_ = storage
-	//TODO: init roouter: chi, "chi render"
+	// TODO: init roouter: chi, "chi render"
+	router := chi.NewRouter()
+
+	// TODO: middleware
+	router.Use(middleware.RequestID)
 	//
 	//TODO: run server
-	id, err := storage.SaveURL("https://google.com", "google")
-	if err != nil {
-		log.Error("faled save url", sl.Err(err))
-	}
-	log.Info("saved url", slog.Int64("id", id))
-	str, err := storage.GetURL("google")
-	if err != nil {
-		log.Error("faled get url", sl.Err(err))
-	}
-	log.Info("get url", slog.String("url", str))
-	err = storage.DeleteURL("google")
-	if err != nil {
-		log.Error("faled delete url", sl.Err(err))
-	}
-	log.Info("delete url", slog.String("alias", "google"))
-	str, err = storage.GetURL("google")
-	if err != nil {
-		log.Error("faled get url", sl.Err(err))
-	}
 }
 
 func setupLogger(env string) *slog.Logger {
