@@ -6,7 +6,6 @@ import (
 
 	"github.com/Lacky1234union/UrlShorter/internal/storage"
 	"github.com/mattn/go-sqlite3"
-	_ "github.com/mattn/go-sqlite3" // init sql driver
 )
 
 type Storage struct {
