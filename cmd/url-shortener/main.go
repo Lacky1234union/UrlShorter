@@ -41,6 +41,7 @@ func main() {
 	// TODO: middleware
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
+	//	router.Use(mwLogger.New(log))
 	// router.Use(mwLogger.New(log))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
@@ -52,6 +53,7 @@ func setupLogger(env string) *slog.Logger {
 	switch env {
 	case envLocal:
 		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+		// log = setupPrettySlog()
 
 	case envDev:
 		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -61,3 +63,17 @@ func setupLogger(env string) *slog.Logger {
 	}
 	return log
 }
+
+// TODO: health
+/*func setupPrettySlog() *slog.Logger {
+	opts := slogpretty.PrettyHandlerOptions{
+		SlogOpts: &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		},
+	}
+
+	handler := opts.NewPrettyHandler(os.Stdout)
+
+	return slog.New(handler)
+}
+*/
