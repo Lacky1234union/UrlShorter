@@ -46,6 +46,15 @@ func main() {
 		log.Error("faled get url", sl.Err(err))
 	}
 	log.Info("get url", slog.String("url", str))
+	err = storage.DeleteURL("google")
+	if err != nil {
+		log.Error("faled delete url", sl.Err(err))
+	}
+	log.Info("delete url", slog.String("alias", "google"))
+	str, err = storage.GetURL("google")
+	if err != nil {
+		log.Error("faled get url", sl.Err(err))
+	}
 }
 
 func setupLogger(env string) *slog.Logger {
