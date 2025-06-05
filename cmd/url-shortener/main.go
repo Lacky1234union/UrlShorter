@@ -36,6 +36,16 @@ func main() {
 	//TODO: init roouter: chi, "chi render"
 	//
 	//TODO: run server
+	id, err := storage.SaveURL("https://google.com", "google")
+	if err != nil {
+		log.Error("faled save url", sl.Err(err))
+	}
+	log.Info("saved url", slog.Int64("id", id))
+	str, err := storage.GetURL("google")
+	if err != nil {
+		log.Error("faled get url", sl.Err(err))
+	}
+	log.Info("get url", slog.String("url", str))
 }
 
 func setupLogger(env string) *slog.Logger {
