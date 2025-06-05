@@ -40,8 +40,8 @@ func main() {
 
 	// TODO: middleware
 	router.Use(middleware.RequestID)
-	//
-	//TODO: run server
+	router.Use(middleware.Logger)
+	// TODO: run server
 }
 
 func setupLogger(env string) *slog.Logger {
