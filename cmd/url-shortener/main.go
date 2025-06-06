@@ -60,11 +60,10 @@ func main() {
 		WriteTimeout: cfg.Timeout,
 		IdleTimeout:  cfg.IdleTimeout,
 	}
-	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Error("failed to start serve")
-		}
-	}()
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start serve")
+	}
+	log.Error("server stoped")
 }
 
 func setupLogger(env string) *slog.Logger {
