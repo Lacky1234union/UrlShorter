@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Lacky1234union/UrlShorter/internal/config"
+	"github.com/Lacky1234union/UrlShorter/internal/http-server/handlers/url/save"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
 	"github.com/Lacky1234union/UrlShorter/internal/storage/sqlite"
 	"github.com/go-chi/chi"
@@ -45,6 +46,8 @@ func main() {
 	// router.Use(mwLogger.New(log))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
+
+	router.Post("/url", save.New(log, storage))
 	// TODO: run server
 }
 

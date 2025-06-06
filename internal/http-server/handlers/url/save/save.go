@@ -1,12 +1,14 @@
 package save
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/Lacky1234union/UrlShorter/internal/lib/api/response"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/random"
+	"github.com/Lacky1234union/UrlShorter/internal/storage"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
@@ -59,5 +61,23 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		if alias == "" {
 			alias = random.NewRandomString(aliasLength)
 		}
+		id, err := urlSaver.SaveURL(req.URL, req.Alias)
+		if errors.Is(err, storage.ErrURLExists) {
+			log.Info("url already exists", slog.String("url", req.URL))
+			render.JSON(w, r, "faled save url")
+			return
+		}
+		if err != nil {
+			log.Error("failed to add url to save", sl.Err(err))
+
+			render.JSON(w, r, "failed to add url")
+			return
+		}
+		log.Info("url added", slog.Int64("id", id))
+		render.JSON(w, r, Response{
+			Response: response.OK(),
+			Alias:    alias,
+		})
+		return
 	}
 }
