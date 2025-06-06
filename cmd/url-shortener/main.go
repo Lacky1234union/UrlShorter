@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 
 	"github.com/Lacky1234union/UrlShorter/internal/config"
@@ -49,6 +50,21 @@ func main() {
 
 	router.Post("/url", save.New(log, storage))
 	// TODO: run server
+	//
+	log.Info("starting server", slog.String("address", cfg.Address))
+
+	srv := &http.Server{
+		Addr:         cfg.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.Timeout,
+		WriteTimeout: cfg.Timeout,
+		IdleTimeout:  cfg.IdleTimeout,
+	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error("failed to start serve")
+		}
+	}()
 }
 
 func setupLogger(env string) *slog.Logger {
