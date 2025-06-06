@@ -11,7 +11,7 @@ import (
 	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
 	"github.com/Lacky1234union/UrlShorter/internal/storage/sqlite"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/chi/middleware"
 )
 
 const (
@@ -43,7 +43,6 @@ func main() {
 	// TODO: middleware
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
-	//	router.Use(mwLogger.New(log))
 	// router.Use(mwLogger.New(log))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
@@ -52,7 +51,6 @@ func main() {
 	// TODO: run server
 	//
 	log.Info("starting server", slog.String("address", cfg.Address))
-
 	srv := &http.Server{
 		Addr:         cfg.Address,
 		Handler:      router,
@@ -60,9 +58,11 @@ func main() {
 		WriteTimeout: cfg.Timeout,
 		IdleTimeout:  cfg.IdleTimeout,
 	}
+
 	if err := srv.ListenAndServe(); err != nil {
 		log.Error("failed to start serve")
 	}
+
 	log.Error("server stoped")
 }
 
