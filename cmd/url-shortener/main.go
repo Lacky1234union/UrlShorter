@@ -6,8 +6,11 @@ import (
 	"net/http"
 	"os"
 
+	mwLogger "github.com/Lacky1234union/UrlShorter/internal/http-server/middleware/loggers"
+
 	"github.com/Lacky1234union/UrlShorter/internal/config"
 	"github.com/Lacky1234union/UrlShorter/internal/http-server/handlers/url/save"
+	deleter "github.com/Lacky1234union/UrlShorter/internal/http-server/redirect/delete"
 	"github.com/Lacky1234union/UrlShorter/internal/http-server/redirect/get"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
 	"github.com/Lacky1234union/UrlShorter/internal/storage/sqlite"
@@ -44,13 +47,13 @@ func main() {
 	// TODO: middleware
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
-	// router.Use(mwLogger.New(log))
+	router.Use(mwLogger.New(log))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.New(log, storage))
 	router.Get("/{alias}", get.New(log, storage))
-	router.Delete("/{alias}", handlerFn http.HandlerFunc)
+	router.Delete("/{alias}", deleter.New(log, storage))
 	// TODO: run server
 	//
 	log.Info("starting server", slog.String("address", cfg.Address))
