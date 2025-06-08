@@ -8,6 +8,7 @@ import (
 
 	"github.com/Lacky1234union/UrlShorter/internal/config"
 	"github.com/Lacky1234union/UrlShorter/internal/http-server/handlers/url/save"
+	"github.com/Lacky1234union/UrlShorter/internal/http-server/redirect/get"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
 	"github.com/Lacky1234union/UrlShorter/internal/storage/sqlite"
 	"github.com/go-chi/chi"
@@ -48,6 +49,8 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.New(log, storage))
+	router.Get("/{alias}", get.New(log, storage))
+	router.Delete("/{alias}", handlerFn http.HandlerFunc)
 	// TODO: run server
 	//
 	log.Info("starting server", slog.String("address", cfg.Address))
