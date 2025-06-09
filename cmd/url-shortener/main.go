@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	mwLogger "github.com/Lacky1234union/UrlShorter/internal/http-server/middleware/loggers"
+	"golang.org/x/exp/slog"
 
 	"github.com/Lacky1234union/UrlShorter/internal/config"
 	"github.com/Lacky1234union/UrlShorter/internal/http-server/handlers/url/save"
@@ -47,7 +50,7 @@ func main() {
 	// TODO: middleware
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
-	router.Use(mwLogger.New(log))
+	// router.Use(mwLogger.New(log))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
@@ -56,6 +59,9 @@ func main() {
 	router.Delete("/{alias}", deleter.New(log, storage))
 	// TODO: run server
 	//
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
 	log.Info("starting server", slog.String("address", cfg.Address))
 	srv := &http.Server{
 		Addr:         cfg.Address,
@@ -65,11 +71,30 @@ func main() {
 		IdleTimeout:  cfg.IdleTimeout,
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
-		log.Error("failed to start serve")
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error("failed to start server")
+		}
+	}()
+
+	log.Info("server started")
+
+	<-done
+	log.Info("stopping server")
+
+	// TODO: move timeout to config
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Error("failed to stop server", sl.Err(err))
+
+		return
 	}
 
-	log.Error("server stoped")
+	// TODO: close storage
+
+	log.Info("server stopped")
 }
 
 func setupLogger(env string) *slog.Logger {

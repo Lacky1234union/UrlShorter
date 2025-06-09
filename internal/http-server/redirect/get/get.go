@@ -2,70 +2,65 @@ package get
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 
-	"github.com/Lacky1234union/UrlShorter/internal/lib/api/response"
-	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
+	"golang.org/x/exp/slog"
+
 	"github.com/Lacky1234union/UrlShorter/internal/storage"
-	"github.com/go-chi/chi/middleware"
+
+	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
+
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/go-playground/validator/v10"
+
+	resp "github.com/Lacky1234union/UrlShorter/internal/lib/api/response"
 )
 
+// URLGetter is an interface for getting url by alias.
+//
+//go:generate go run github.com/vektra/mockery/v2@v2.28.2 --name=URLGetter
 type URLGetter interface {
 	GetURL(alias string) (string, error)
 }
 
-type Request struct {
-	Alias string `json:"alias,omitempty"`
-}
-
-type Response struct {
-	response.Response
-	Url string `json:"url"`
-}
-
-// TODO: go:generate go run github.com/vektra/mock/ ...
 func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.url.get.New"
+		const op = "handlers.url.redirect.New"
 
-		log = log.With(
+		log := log.With(
 			slog.String("op", op),
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		var req Request
-		err := render.DecodeJSON(r.Body, &req)
-		if err != nil {
-			log.Error("failed to decode request body", sl.Err(err))
-
-			render.JSON(w, r, response.Error("failed to decode request"))
-			return
-
-		}
-
-		log.Info("request body decoded", "Request", req)
-
-		if err := validator.New().Struct(req); err != nil {
-			log.Error("invalid request", sl.Err(err))
-		}
 		alias := chi.URLParam(r, "alias")
 		if alias == "" {
-			log.Error("invalid alias", slog.String("alias", req.Alias))
-			render.JSON(w, r, response.Error("invalid alias"))
+			log.Info("alias is empty")
+
+			render.JSON(w, r, resp.Error("invalid request"))
+
 			return
 		}
 
-		url, err := urlGetter.GetURL(req.Alias)
+		resURL, err := urlGetter.GetURL(alias)
 		if errors.Is(err, storage.ErrURLNotFound) {
-			log.Error("url not found", slog.String("alias", req.Alias))
-			render.JSON(w, r, "url not found")
+			log.Info("url not found", "alias", alias)
+
+			render.JSON(w, r, resp.Error("not found"))
+
 			return
 		}
-		log.Info("get", slog.String("url", url))
-		http.Redirect(w, r, url, http.StatusFound)
+		if err != nil {
+			log.Error("failed to get url", sl.Err(err))
+
+			render.JSON(w, r, resp.Error("internal error"))
+
+			return
+		}
+
+		log.Info("got url", slog.String("url", resURL))
+
+		// redirect to found url
+		http.Redirect(w, r, resURL, http.StatusFound)
 	}
 }

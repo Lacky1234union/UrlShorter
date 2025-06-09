@@ -1,8 +1,9 @@
 package delete
 
 import (
-	"log/slog"
 	"net/http"
+
+	"golang.org/x/exp/slog"
 
 	"github.com/Lacky1234union/UrlShorter/internal/lib/api/response"
 	"github.com/Lacky1234union/UrlShorter/internal/lib/logger/sl"
